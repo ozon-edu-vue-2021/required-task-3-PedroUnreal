@@ -2,7 +2,7 @@
   <div class="menu">
     <div class="toolbar">
       <div class="toolbar__header">
-        <template v-if="!isUserOpenned">
+        <template v-if="!isVisible">
           <h3>Информация</h3>
         </template>
         <template v-else>
@@ -15,7 +15,7 @@
       <div class="toolbar__actions"></div>
     </div>
     <div class="content">
-      <div v-if="!isUserOpenned" class="legend">
+      <div v-if="!isVisible" class="legend">
         <div class="legend__data">
           <div v-if="legend.length > 0" class="legend__items">
             <Draggable>
@@ -31,14 +31,12 @@
           </div>
           <span v-else class="legend--empty"> Список пуст </span>
         </div>
-        <div class="legend__chart">
+        <div v-if="!isVisible" class="legend__chart">
           <PieChart ref="chart" />
         </div>
       </div>
       <div v-else class="profile">
-        <div v-if="!person" class="profile__empty">Место пустое</div>
-
-        <PersonCard :person="person" />
+        <PersonCard :person="person" :closeProfile="closeProfile" />
       </div>
     </div>
   </div>
@@ -53,13 +51,15 @@ import { Doughnut as PieChart } from "vue-chartjs";
 
 export default {
   props: {
-    isUserOpenned: {
+    isVisible: {
       type: Boolean,
-      default: false,
     },
     person: {
       type: Object,
       default: null,
+    },
+    setIsOpen: {
+      type: Function,
     },
   },
   components: {
@@ -79,12 +79,18 @@ export default {
   mounted() {
     this.makeChart();
   },
+  updated() {
+    if (!this.isVisible) {
+      this.makeChart();
+    }
+  },
   methods: {
     loadLegend() {
       this.legend = legend;
     },
     closeProfile() {
-      this.$emit("update:isUserOpenned", false);
+      //this.$emit("update:isUserOpenned", false);
+      this.setIsOpen(false);
     },
     makeChart() {
       const chartData = {
@@ -98,10 +104,10 @@ export default {
         ],
       };
       const options = {
-          borderWidth: "10px",
-                legend: {
-                    display: false,
-                },
+        borderWidth: "10px",
+        legend: {
+          display: false,
+        },
       };
       this.$refs.chart.renderChart(chartData, options);
     },
